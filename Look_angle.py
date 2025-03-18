@@ -35,7 +35,7 @@ def process_los_file(SC_height_start, SC_height_end, Earth_height, los_file, ref
 
     # 计算视角
     look_angle = np.degrees(
-        np.arccos((Earth_height * np.cos(np.radians(incidence_angle))) / (Earth_height + x_pred[:, np.newaxis]))
+        np.arcsin((Earth_height * np.sin(np.radians(incidence_angle))) / (Earth_height + x_pred[:, np.newaxis]))
     )
 
     # 保存视角到 ENVI 文件
