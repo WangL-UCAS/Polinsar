@@ -68,12 +68,6 @@ array_909_k1, array_909_k2, array_909_k3 = make_pauli(array_HH_909, array_VV_909
 
 print("-------pauli 计算结束-------")
 
-array_830_k1_H = array_830_k1.T.conj()
-array_830_k2_H = array_830_k2.T.conj()
-array_830_k3_H = array_830_k3.T.conj()
-k = np.array([[array_830_k1, array_830_k2, array_830_k3]])
-# k1 = np.array([[array_830_k1_H],[array_830_k2_H],[array_830_k3_H]])
-print(k.shape)
 """
     ------- 计算 T6 并保存---------
     transpose_conjugate = matrix.T.conj()  矩阵转置共轭函数 matrix 是原始函数
