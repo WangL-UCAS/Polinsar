@@ -150,6 +150,5 @@ print("程序共计运行时间为：",(end_time - strat_time))
 # plt.subplot(2, 2, 4)
 # plt.title("Filtered Image 909 - Imaginary Part")
 # plt.imshow(np.imag(filtered_image_909), cmap='gray')
-#
 # plt.show()
 
