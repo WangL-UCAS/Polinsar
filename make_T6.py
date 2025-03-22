@@ -120,7 +120,7 @@ def make_T6(array_mask_k1, array_mask_k2, array_mask_k3, array_slave_k1, array_s
 T11, T22, Omaga_11 = make_T6(array_830_k1, array_830_k2, array_830_k3, array_909_k1, array_909_k2, array_909_k3)
 """
     
-    计算相干性优化？ copy的kapok代码，调试使用
+    计算相干性优化？ copy的kapok代码，调试使
     
 """
 # def pdopt(tm, om, numph=30, step=50, reg=0.0, returnall=False):
