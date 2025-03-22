@@ -91,7 +91,7 @@ def make_T6(array_mask_k1, array_mask_k2, array_mask_k3, array_slave_k1, array_s
     array_mask_k3_T = array_mask_k3.T.conj()
     k1 = np.array([[array_mask_k1,array_mask_k2,array_mask_k3]])
     k1_T = np.array([[array_mask_k1_T,array_mask_k2_T,array_mask_k3_T]])
-    T11 = np.zeros((3, 3))
+    T11 = np.zeros((3, 3),dtype=object) ## 此处是将计算结果形成一个对象，保存在一个3x3的矩阵之中
 
     ## 这里采用循环计算矩阵相乘，得到最后的T11
     for i in range(3):
@@ -105,7 +105,7 @@ def make_T6(array_mask_k1, array_mask_k2, array_mask_k3, array_slave_k1, array_s
     k2 = np.array([[array_slave_k1,array_slave_k2,array_slave_k3]])
     k2_T = np.array([[array_slave_k1_T, array_slave_k2_T, array_slave_k3_T]])
 
-    T22 = np.zeros((3, 3))
+    T22 = np.zeros((3, 3),dtype=object)
     for i in range(3):
         for j in range(3):
             T22[i][j] = np.dot(k2[i],k2_T[i])
@@ -119,9 +119,7 @@ def make_T6(array_mask_k1, array_mask_k2, array_mask_k3, array_slave_k1, array_s
 
 T11, T22, Omaga_11 = make_T6(array_830_k1, array_830_k2, array_830_k3, array_909_k1, array_909_k2, array_909_k3)
 """
-    
     计算相干性优化？ copy的kapok代码，调试使用
-    
 """
 # def pdopt(tm, om, numph=30, step=50, reg=0.0, returnall=False):
 #     # 获取输入矩阵tm的维度（azimuth, range, n, n），n为极化通道数
