@@ -52,6 +52,9 @@ array_VH_909 = data_matrices["array_VH_20240906"]
 # 计算  HV 与 VH 两种极化方式的平均数据，后续可以采用平均值计算
 array_HV_909 = (array_HV_909 + array_VH_909) / 2
 
+#获取影像行列数
+row,col = array_HH_830.shape
+
 print("测试一下数据读取是否成功读取：", array_HH_909[5000][2000],"----" ,array_VV_909[5000][2000])
 
 """
@@ -60,7 +63,6 @@ print("测试一下数据读取是否成功读取：", array_HH_909[5000][2000],
 """
 def make_pauli(array_HH, array_VV, array_HV):
     ## 获取卫星影像的像元数量
-    row,col = array_HH.shape
     k1 = np.zeros((row,col,3,1),dtype=complex)
     for i in range(row):
         for j in range(col):
@@ -76,7 +78,6 @@ array_909_k2 = make_pauli(array_HH_909, array_VV_909, array_HV_909)
 
 ## 计算共轭转置
 def make_pauli_T(array_HH, array_VV, array_HV):
-    row,col = array_HH.shape
     k1 = np.zeros((row,col,1,3),dtype=complex)
     for i in range(row):
         for j in range(col):
@@ -98,11 +99,21 @@ print("-------pauli以及共轭计算计算结束-------")
     transpose_conjugate = matrix.T.conj()  矩阵转置共轭函数 matrix 是原始函数
      k1 = np.array([array_mask_k1, array_mask_k2, array_mask_k3]).T
 """
-def make_T6(array_pauli,array_pauli_T):
+def make_T6(array_pauli_mask,array_pauli_T_mask,array_pauli_slave,array_pauli_T_slave):
 
     """
     计算T6矩阵中的 T11 T22 以及 Ω12
+    mask是主影像，slave是副影像， T表示转置共轭结果
     """
+    T11 = np.zeros((row,col,3,3),dtype=complex)
+    T22 = np.zeros((row,col,3,3),dtype=complex)
+    for i in range(row):
+        for j in range(col):
+            T11[i,j] = array_pauli_mask[i,j]@array_pauli_T_mask[i,j]
+            T22[i,j] = array_pauli_slave[i,j]@array_pauli_T_slave[i,j]
+
+
+
 """
     计算相干性优化？ copy的kapok代码，调试使用
     计算矩阵的逆 A_inv = np.linalg.inv(A) 这个inv是对每一个小矩阵求逆，然后放回原位置
