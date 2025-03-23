@@ -104,16 +104,21 @@ def make_T6(array_pauli_mask,array_pauli_T_mask,array_pauli_slave,array_pauli_T_
     """
     计算T6矩阵中的 T11 T22 以及 Ω12
     mask是主影像，slave是副影像， T表示转置共轭结果
+    mask得到是K1  slave 是k2
     """
     T11 = np.zeros((row,col,3,3),dtype=complex)
     T22 = np.zeros((row,col,3,3),dtype=complex)
+    Omaga12 = np.zeros((row,col,3,3),dtype=complex)
+
     for i in range(row):
         for j in range(col):
             T11[i,j] = array_pauli_mask[i,j]@array_pauli_T_mask[i,j]
             T22[i,j] = array_pauli_slave[i,j]@array_pauli_T_slave[i,j]
+            Omaga12[i,j] = array_pauli_mask[i,j]@array_pauli_T_slave[i,j]
 
+    return T11,T22,Omaga12
 
-
+print("-")
 """
     计算相干性优  copy的kapok代码，调试使用
     计算矩阵的逆 A_inv = np.linalg.inv(A) 这个inv是对每一个小矩阵求逆，然后放回原位置
@@ -248,4 +253,4 @@ def make_T6(array_pauli_mask,array_pauli_T_mask,array_pauli_slave,array_pauli_T_
 #     else:
 #         return gammamax, gammamin
 #
-# gama_max, gama_min = pdopt(T11, Omaga_11,numph=30, step=50, reg=0.0, returnall=False )
+# gama_max, gama_min = pdopt(T11, Omaga_11,numph=30, step=50, reg=0.0, returnall=False)
