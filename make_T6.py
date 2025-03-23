@@ -115,7 +115,7 @@ def make_T6(array_pauli_mask,array_pauli_T_mask,array_pauli_slave,array_pauli_T_
 
 
 """
-    计算相干性优 copy的kapok代码，调试使用
+    计算相干性优  copy的kapok代码，调试使用
     计算矩阵的逆 A_inv = np.linalg.inv(A) 这个inv是对每一个小矩阵求逆，然后放回原位置
 """
 # def pdopt(tm, om, numph=30, step=50, reg=0.0, returnall=False):
