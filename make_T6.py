@@ -55,71 +55,57 @@ array_HV_909 = (array_HV_909 + array_VH_909) / 2
 print("测试一下数据读取是否成功读取：", array_HH_909[5000][2000],"----" ,array_VV_909[5000][2000])
 
 """
-    make_pauli 是创建pauli散射的 K 矩阵
+    make_pauli 是创建pauli散射的 K 矩阵,
+    md这里的计算都是像素为单位的，避免出错
 """
 def make_pauli(array_HH, array_VV, array_HV):
-    k1 = (array_HH + array_VV) / np.sqrt(2)
-    k2 = (array_HH - array_VV) / np.sqrt(2)
-    k3 = 2 * array_HV / np.sqrt(2)
-    return k1, k2, k3
+    ## 获取卫星影像的像元数量
+    row,col = array_HH.shape
+    k1 = np.zeros((row,col,3,1),dtype=complex)
+    for i in range(row):
+        for j in range(col):
+            k11 = (array_HH[i,j] + array_VV[i,j]) / math.sqrt(2)
+            k22 = (array_HH[i,j] - array_VV[i,j]) / math.sqrt(2)
+            k33 = (array_HV[i,j] * 2) / math.sqrt(2)
+            k1[i,j] = np.array([[k11],[k22],[k33]])
+    return k1
 
 # 计算 Pauli 分解
-array_830_k1, array_830_k2, array_830_k3 = make_pauli(array_HH_830, array_VV_830, array_HV_830)
-array_909_k1, array_909_k2, array_909_k3 = make_pauli(array_HH_909, array_VV_909, array_HV_909)
+array_830_k1 = make_pauli(array_HH_830, array_VV_830, array_HV_830)
+array_909_k2 = make_pauli(array_HH_909, array_VV_909, array_HV_909)
 
+## 计算共轭转置
+def make_pauli_T(array_HH, array_VV, array_HV):
+    row,col = array_HH.shape
+    k1 = np.zeros((row,col,1,3),dtype=complex)
+    for i in range(row):
+        for j in range(col):
+            k11 = (array_HH[i,j] + array_VV[i,j]) / math.sqrt(2)
+            k22 = (array_HH[i,j] - array_VV[i,j]) / math.sqrt(2)
+            k33 = (array_HV[i,j] * 2) / math.sqrt(2)
+            k = np.array([k11,k22,k33])
+            k_conj = np.conj(k)
+            k1[i,j] = np.array(k_conj)
+    return k1
 
-print("-------pauli 计算结束-------")
+array_830_k1_T = make_pauli_T(array_HH_830, array_VV_830, array_HV_830)
+array_909_k2_T = make_pauli_T(array_HH_909, array_VV_909, array_HV_909)
+
+print("-------pauli以及共轭计算计算结束-------")
 
 """
     ------- 计算 T6 并保存---------
     transpose_conjugate = matrix.T.conj()  矩阵转置共轭函数 matrix 是原始函数
      k1 = np.array([array_mask_k1, array_mask_k2, array_mask_k3]).T
-
 """
-def make_T6(array_mask_k1, array_mask_k2, array_mask_k3, array_slave_k1, array_slave_k2, array_slave_k3):
+def make_T6(array_pauli,array_pauli_T):
 
     """
-    计算矩阵转置共轭
-    参数说明： K1是k6矩阵中的前三项、k2为后三项 ;K6 = [array_830_k1, array_830_k2, array_830_k3, array_909_k1, array_909_k2, array_909_k3]
-    k1_T 表示是k1 的转置，也就是从三行一列转为一行三列用于后续的计算
-    而其中元素（array_830_k1、、、、）的的转置共轭在外面已经计算  例如： array_mask_k1_T = array_mask_k1.T.conj()
-    Omaga_11 表示T6矩阵中的极化干涉矩阵，如果将T6的 6x6矩阵分为四块；那么Omaga_11 表示的是右上角的 3x3矩阵
-
+    计算T6矩阵中的 T11 T22 以及 Ω12
     """
-    array_mask_k1_T = array_mask_k1.T.conj()
-    array_mask_k2_T = array_mask_k2.T.conj()
-    array_mask_k3_T = array_mask_k3.T.conj()
-    k1 = np.array([[array_mask_k1,array_mask_k2,array_mask_k3]])
-    k1_T = np.array([[array_mask_k1_T,array_mask_k2_T,array_mask_k3_T]])
-    T11 = np.zeros((3, 3),dtype=object) ## 此处是将计算结果形成一个对象，保存在一个3x3的矩阵之中
-
-    ## 这里采用循环计算矩阵相乘，得到最后的T11
-    for i in range(3):
-        for j in range(3):
-            T11[i][j] = np.dot(k1[i],k1_T[j])
-
-    array_slave_k1_T = array_slave_k1.T.conj()
-    array_slave_k2_T = array_slave_k2.T.conj()
-    array_slave_k3_T = array_slave_k3.T.conj()
-
-    k2 = np.array([[array_slave_k1,array_slave_k2,array_slave_k3]])
-    k2_T = np.array([[array_slave_k1_T, array_slave_k2_T, array_slave_k3_T]])
-
-    T22 = np.zeros((3, 3),dtype=object)
-    for i in range(3):
-        for j in range(3):
-            T22[i][j] = np.dot(k2[i],k2_T[i])
-
-    Omaga_11 = np.zeros((3, 3))
-    for i in range(3):
-        for j in range(3):
-            Omaga_11[i][j] = np.dot(k2[i],k1_T[j])
-    Omaga_11 = k2 * k1_T
-    return T11, T22, Omaga_11
-
-T11, T22, Omaga_11 = make_T6(array_830_k1, array_830_k2, array_830_k3, array_909_k1, array_909_k2, array_909_k3)
 """
     计算相干性优化？ copy的kapok代码，调试使用
+    计算矩阵的逆 A_inv = np.linalg.inv(A) 这个inv是对每一个小矩阵求逆，然后放回原位置
 """
 # def pdopt(tm, om, numph=30, step=50, reg=0.0, returnall=False):
 #     # 获取输入矩阵tm的维度（azimuth, range, n, n），n为极化通道数
