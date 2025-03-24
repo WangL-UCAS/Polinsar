@@ -145,7 +145,7 @@ def make_MAX(T11,T22,Omaga12):
     T11_inv = np.linalg.inv(T11)
     T22_inv = np.linalg.inv(T22)
 
-    # 三个复相干系数
+    # 三个 ⋋1*⋋2
     Y_MAX = np.array((row,col),dtype=complex)
     Y_MID = np.array((col,row),dtype=complex)
     Y_END = np.array((col,row),dtype=complex)
