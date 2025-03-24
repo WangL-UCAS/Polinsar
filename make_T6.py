@@ -157,11 +157,11 @@ def make_MAX(T11,T22,Omaga12):
             sorted_indices = np.argsort(eig_values1)[::-1]  # 从大到小排序索引
             v = eig_values1[sorted_indices]
             """
-            下面的计算就是要将v保存三个row ，col 的矩阵，因为有三个优复相干系数
+            下面的计算就是要将v保存三个row ，col 的矩阵，还要计算相位归一化，因为要确定特征向量，参考最新的谷歌GPT搜索，因为有三个优复相干系数，
             """
-            v1[i,j] = v[0]
-            v2[i,j] = v[1]
-            v3[i,j] = v[2]
+            v1[i,j] = math.sqrt(v[0])
+            v2[i,j] = math.sqrt(v[1])
+            v3[i,j] = math.sqrt(v[2])
 
 
 # def pdopt(tm, om, numph=30, step=50, reg=0.0, returnall=False):
