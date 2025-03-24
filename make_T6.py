@@ -139,14 +139,16 @@ def make_MAX(T11,T22,Omaga12):
     :param Omaga12:
     :return:
     """
+    T11_inv = np.linalg.inv(T11)
+    T22_inv = np.linalg.inv(T22)
+    v1 = np.array((row,col),dtype=complex)
+    v2 = np.array((col,row),dtype=complex)
+    v3 = np.array((col,row),dtype=complex)
     for i in range(row):
         for j in range(col):
-            T11_inv = np.linalg.inv(T11[i,j])
-            T22_inv = np.linalg.inv(T22[i,j])
-
             #构造特征矩阵
-            Matrix1 = T22_inv @ Omaga12[i,j].conj().T @ T11_inv @ Omaga12[i,j].conj().T
-            Matrix2 = T11_inv @ Omaga12 @ T22_inv @ Omaga12[i,j].conj().T
+            Matrix1 = T22_inv[i,j] @ Omaga12[i,j].conj().T @ T11_inv[i,j] @ Omaga12[i,j].conj().T
+            Matrix2 = T11_inv[i,j] @ Omaga12 @ T22_inv[i,j] @ Omaga12[i,j].conj().T
 
             #计算特征值和特征向量  np.linalg.eig 方法会返回两个值，第一个返回值是矩阵的特征值，第二个返回值是矩阵的特征向量，Matrix1 和 Matrix2 是共轭关系，因此这两个矩阵的特征值是相等的，取其中三个就行了
             eig_values1, eig_vectors1 = np.linalg.eig(Matrix1)
@@ -154,13 +156,12 @@ def make_MAX(T11,T22,Omaga12):
 
             sorted_indices = np.argsort(eig_values1)[::-1]  # 从大到小排序索引
             v = eig_values1[sorted_indices]
-
             """
             下面的计算就是要将v保存三个row ，col 的矩阵，因为有三个优复相干系数
             """
-
-
-
+            v1[i,j] = v[0]
+            v2[i,j] = v[1]
+            v3[i,j] = v[2]
 
 
 # def pdopt(tm, om, numph=30, step=50, reg=0.0, returnall=False):
