@@ -4,7 +4,7 @@ import numpy as np
 from osgeo import gdal
 import math
 import numpy.linalg as linalg
-import time
+from datetime import datetime
 
 """
     data_ : 是指的卫星数据的日期，例如20240829；
@@ -35,6 +35,9 @@ file_mid = "_QS6_D_"
 file_end = "_slc_rsp"
 Polarization = ["HH","HV","VH","VV"]
 data_matrices = read_data_from_file("830", file_head, file_mid, file_end, Polarization, 20240829, 105058528)
+
+start_time = datetime.now()
+print("程序启动时间为：",start_time)
 
 array_HH_830 = data_matrices["array_HH_20240829"]
 array_VV_830 = data_matrices["array_VV_20240829"]
@@ -74,7 +77,7 @@ def make_pauli(array_HH, array_VV, array_HV):
 # 计算 Pauli 分解
 array_830_k1 = make_pauli(array_HH_830, array_VV_830, array_HV_830)
 array_909_k2 = make_pauli(array_HH_909, array_VV_909, array_HV_909)
-print("-------pauli 分解结束")
+print("-------pauli 分解结束----------")
 
 ## 计算共轭转置
 def make_pauli_T(array_HH, array_VV, array_HV):
@@ -162,7 +165,7 @@ def make_MAX(T11,T22,Omaga12):
             eig_vectors1_MAX_T 表示v_max对应的w1特征向量
             Angle_max表示v_max 对应的特征向量w1 与 w2 计算归一化时的复度角
             """
-            #  计算相位归一化
+            #  计算归一化时的复度角
             Angle_max = cmath.phase(eig_vectors1[sorted_indices[0]].conj().T * eig_vectors2[sorted_indices[0]])
             Angle_mid = cmath.phase(eig_vectors1[sorted_indices[1]].conj().T * eig_vectors2[sorted_indices[1]])
             Angle_end = cmath.phase(eig_vectors1[sorted_indices[2]].conj().T * eig_vectors2[sorted_indices[2]])
@@ -171,10 +174,15 @@ def make_MAX(T11,T22,Omaga12):
             V_mid = math.sqrt(eig_values1[sorted_indices[1]])
             V_end = math.sqrt(eig_values1[sorted_indices[2]])
 
-            #  计算复相干系数
+            #  计算最优复相干系数
             Y_MAX[i,j] = V_max * math.exp(-1j * Angle_max)
             Y_MID[i,j] = V_mid * math.exp(-1j * Angle_mid)
             Y_END[i,j] = V_end * math.exp(-1j * Angle_end)
 
     return Y_MAX, Y_MID, Y_END
+
+
+end_time = datetime.now()
+print("程序启动结束为：",end_time)
+print("程序总计用时为：",end_time-start_time)
 
