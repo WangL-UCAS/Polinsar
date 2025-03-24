@@ -1,3 +1,5 @@
+import cmath
+
 import numpy as np
 from osgeo import gdal
 import math
@@ -122,28 +124,28 @@ Omaga12 = np.zeros((row,col,3,3),dtype=complex)
 T11 , T22 , Omaga12 = make_T6(array_830_k1 , array_830_k1_T , array_909_k2, array_909_k2_T)
 
 print("---------计算T11 T22 O12 结果结束-----------")
+
+
 """
     计算相干性优  copy的kapok代码，调试使用
     make_MAX 计算相干性优秀，WangL编写，不是调用kapok代码
     采用的是拉格朗日计算最优
 """
-
 def make_MAX(T11,T22,Omaga12):
 
     """
-    计算步骤
-    1：计算 T11、T22逆 、还要计算Omaga的共轭转置 (T11_inv 表示为逆矩阵)
-
     :param T11:
     :param T22:
     :param Omaga12:
-    :return:
+    :return: Y_MAX, Y_MID, Y_END
     """
     T11_inv = np.linalg.inv(T11)
     T22_inv = np.linalg.inv(T22)
-    v1 = np.array((row,col),dtype=complex)
-    v2 = np.array((col,row),dtype=complex)
-    v3 = np.array((col,row),dtype=complex)
+
+    # 三个复相干系数
+    Y_MAX = np.array((row,col),dtype=complex)
+    Y_MID = np.array((col,row),dtype=complex)
+    Y_END = np.array((col,row),dtype=complex)
     for i in range(row):
         for j in range(col):
             #构造特征矩阵
@@ -154,144 +156,25 @@ def make_MAX(T11,T22,Omaga12):
             eig_values1, eig_vectors1 = np.linalg.eig(Matrix1)
             eig_values2, eig_vectors2 = np.linalg.eig(Matrix2)
 
-            sorted_indices = np.argsort(eig_values1)[::-1]  # 从大到小排序索引
-            v = eig_values1[sorted_indices]
+            sorted_indices = np.argsort(eig_values1)[::-1]  # 从大到小排序索引,注意这里的返回值sorted_indices 是索引而不是数值，因此在这可以通过索引获取实际的特征值和特征向量方便后续计算
             """
             下面的计算就是要将v保存三个row ，col 的矩阵，还要计算相位归一化，因为要确定特征向量，参考最新的谷歌GPT搜索，因为有三个优复相干系数，
+            eig_vectors1_MAX_T 表示v_max对应的w1特征向量
+            Angle_max表示v_max 对应的特征向量w1 与 w2 计算归一化时的复度角
             """
-            v1[i,j] = math.sqrt(v[0])
-            v2[i,j] = math.sqrt(v[1])
-            v3[i,j] = math.sqrt(v[2])
+            #  计算相位归一化
+            Angle_max = cmath.phase(eig_vectors1[sorted_indices[0]].conj().T * eig_vectors2[sorted_indices[0]])
+            Angle_mid = cmath.phase(eig_vectors1[sorted_indices[1]].conj().T * eig_vectors2[sorted_indices[1]])
+            Angle_end = cmath.phase(eig_vectors1[sorted_indices[2]].conj().T * eig_vectors2[sorted_indices[2]])
 
+            V_max = math.sqrt(eig_values1[sorted_indices[0]])
+            V_mid = math.sqrt(eig_values1[sorted_indices[1]])
+            V_end = math.sqrt(eig_values1[sorted_indices[2]])
 
-# def pdopt(tm, om, numph=30, step=50, reg=0.0, returnall=False):
-#     # 获取输入矩阵tm的维度（azimuth, range, n, n），n为极化通道数
-#     dim = np.shape(tm)
-#
-#     # 矩阵正则化（防止奇异矩阵）
-#     if reg > 0:
-#         # 创建与tm同维度的正则化矩阵
-#         regmat = np.zeros(dim, dtype='complex64')
-#         # 每个位置填充单位矩阵乘以正则化系数和tm的迹
-#         regmat[:, :] = np.eye(dim[2])
-#         regmat = regmat * reg * np.trace(tm, axis1=2, axis2=3)[:, :, np.newaxis, np.newaxis]
-#         tm = tm + regmat  # 添加到原矩阵
-#
-#         # 对om矩阵执行相同正则化
-#         regmat = np.zeros(dim, dtype='complex64')
-#         regmat[:, :] = np.eye(dim[2])
-#         regmat = regmat * reg * np.trace(om, axis1=2, axis2=3)[:, :, np.newaxis, np.newaxis]
-#         om = om + regmat
-#         del regmat  # 释放内存
-#
-#     # 初始化存储结果的数组
-#     cohsize = (dim[0], dim[1])  # 方位和距离向像素数
-#     cohdiff = np.zeros(cohsize, dtype='float32')  # 最大相干差异
-#     gammamax = np.zeros(cohsize, dtype='complex64')  # 最大相干值
-#     gammamin = np.zeros(cohsize, dtype='complex64')  # 最小相干值
-#
-#     # 如果需返回全部结果，初始化最小差异相关数组
-#     if returnall:
-#         mincohdiff = np.ones(cohsize, dtype='float32') * 99
-#         gammaminormax = np.zeros(cohsize, dtype='complex64')
-#         gammaminormin = np.zeros(cohsize, dtype='complex64')
-#
-#     # 初始化极化权重向量存储数组（若需要返回）
-#     weightsize = (dim[0], dim[1], dim[3])
-#     wmax = np.zeros(weightsize, dtype='complex64')  # 最大相干对应权重
-#     wmin = np.zeros(weightsize, dtype='complex64')  # 最小相干对应权重
-#
-#     # 主循环：遍历不同相位旋转角度
-#     for Ph in np.arange(0, numph):
-#         Pr = Ph * np.pi / numph  # 计算当前相位弧度值
-#
-#         # 打印进度（覆盖式输出）
-#         print('kapok.cohopt.pdopt | Current Progress: ' + str(
-#             np.round(Pr / np.pi * 100, decimals=2)) + '%. (' + time.ctime() + ')     ', end='\r')
-#
-#         # 分块处理（提升大矩阵运算效率）
-#         for az in range(0, dim[0], step):
-#             azend = min(az + step, dim[0])  # 计算当前块结束位置
-#
-#             for rng in range(0, dim[1], step):
-#                 rngend = min(rng + step, dim[1])
-#
-#                 # 提取当前数据块
-#                 omblock = om[az:azend, rng:rngend]
-#                 tmblock = tm[az:azend, rng:rngend]
-#                 z12 = omblock.copy()
-#
-#                 # 相位旋转：给omega矩阵施加相位偏移
-#                 z12 *= np.exp(1j * Pr)
-#                 # 强制成为共轭对称矩阵（保证特征值为实数）
-#                 z12 = 0.5 * (z12 + np.rollaxis(np.conj(z12), 3, 2))
-#
-#                 # 检查奇异矩阵（行列式为0）
-#                 det = linalg.det(tmblock)
-#                 ind = (det == 0)
-#                 if np.any(ind):
-#                     tmblock[ind] = np.eye(dim[3])  # 替换为单阵避免计算错误
-#
-#                 # 求解广义特征值问题：inv(T) * Ω 的特征值
-#                 nu, w = linalg.eig(np.einsum('...ij,...jk->...ik',
-#                                              linalg.inv(tmblock), z12))
-#
-#                 # 计算伴随矩阵（共轭转置）
-#                 wH = np.rollaxis(np.conj(w), 3, 2)
-#
-#                 # 计算相干性分子项：w^H * Ω * w
-#                 Tmp = np.einsum('...ij,...jk->...ik', omblock, w)
-#                 Tmp12 = np.einsum('...ij,...jk->...ik', wH, Tmp)
-#
-#                 # 计算相干性分母项：w^H * T * w
-#                 Tmp = np.einsum('...ij,...jk->...ik', tmblock, w)
-#                 Tmp11 = np.einsum('...ij,...jk->...ik', wH, Tmp)
-#
-#                 # 创建索引网格用于后续取值
-#                 azind = np.tile(np.arange(0, w.shape[0]), (w.shape[1], 1)).T
-#                 rngind = np.tile(np.arange(0, w.shape[1]), (w.shape[0], 1))
-#
-#                 # 找到最小/最大特征值对应的索引
-#                 lmin = np.argmin(nu, axis=2)
-#                 gmin = Tmp12[azind, rngind, lmin, lmin] / np.abs(Tmp11[azind, rngind, lmin, lmin])
-#
-#                 lmax = np.argmax(nu, axis=2)
-#                 gmax = Tmp12[azind, rngind, lmax, lmax] / np.abs(Tmp11[azind, rngind, lmax, lmax])
-#
-#                 # 判断当前差异是否更大
-#                 ind = (np.abs(gmax - gmin) > cohdiff[az:azend, rng:rngend])
-#
-#                 # 更新最大差异结果
-#                 if np.any(ind):
-#                     azupdate, rngupdate = np.where(ind)
-#                     # 更新全局数组对应位置的值
-#                     cohdiff[az + azupdate, rng + rngupdate] = np.abs(gmax - gmin)[azupdate, rngupdate]
-#                     gammamax[az + azupdate, rng + rngupdate] = gmax[azupdate, rngupdate]
-#                     gammamin[az + azupdate, rng + rngupdate] = gmin[azupdate, rngupdate]
-#
-#                     # 若需要返回权重向量
-#                     if returnall:
-#                         wmax[az + azupdate, rng + rngupdate, :] = w[azupdate, rngupdate, :, lmax[azupdate, rngupdate]]
-#                         wmin[az + azupdate, rng + rngupdate, :] = w[azupdate, rngupdate, :, lmin[azupdate, rngupdate]]
-#
-#                 # 处理最小差异记录（若需要返回全部结果）
-#                 if returnall:
-#                     ind = (np.abs(gmax - gmin) < mincohdiff[az:azend, rng:rngend])
-#                     if np.any(ind):
-#                         azupdate, rngupdate = np.where(ind)
-#                         mincohdiff[az + azupdate, rng + rngupdate] = np.abs(gmax - gmin)[azupdate, rngupdate]
-#                         gammaminormax[az + azupdate, rng + rngupdate] = gmax[azupdate, rngupdate]
-#                         gammaminormin[az + azupdate, rng + rngupdate] = gmin[azupdate, rngupdate]
-#
-#     # 完成提示
-#     print('kapok.cohopt.pdopt | Optimization complete. (' + time.ctime() + ')          ')
-#
-#     # 根据标志返回不同结果
-#     if returnall:
-#         return (gammamax, gammamin,
-#                 gammaminormax, gammaminormin,
-#                 wmax, wmin)
-#     else:
-#         return gammamax, gammamin
-#
-# gama_max, gama_min = pdopt(T11, Omaga12,numph=30, step=50, reg=0.0, returnall=False)
+            #  计算复相干系数
+            Y_MAX[i,j] = V_max * math.exp(-1j * Angle_max)
+            Y_MID[i,j] = V_mid * math.exp(-1j * Angle_mid)
+            Y_END[i,j] = V_end * math.exp(-1j * Angle_end)
+
+    return Y_MAX, Y_MID, Y_END
+
