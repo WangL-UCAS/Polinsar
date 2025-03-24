@@ -162,7 +162,7 @@ def make_MAX(T11,T22,Omaga12):
             eig_vectors1_MAX_T 表示v_max对应的w1特征向量
             Angle_max表示v_max 对应的特征向量w1 与 w2 计算归一化时的复度角
             """
-            #  计算相位归一化
+            #  计算归一化时的复度角
             Angle_max = cmath.phase(eig_vectors1[sorted_indices[0]].conj().T * eig_vectors2[sorted_indices[0]])
             Angle_mid = cmath.phase(eig_vectors1[sorted_indices[1]].conj().T * eig_vectors2[sorted_indices[1]])
             Angle_end = cmath.phase(eig_vectors1[sorted_indices[2]].conj().T * eig_vectors2[sorted_indices[2]])
