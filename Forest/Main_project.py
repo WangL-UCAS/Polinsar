@@ -36,8 +36,7 @@ array_HH_909, array_VV_909, array_HV_909, array_VH_909 = input_data.read_data_fr
 #获取影像行列数
 row,col = array_HH_830.shape
 """
-    make_pauli 是创建pauli散射的 K 矩阵,
-    md这里的计算都是像素为单位的，避免出错
+    md这里的所有计算都是像素为单位的，避免出错
 """
 # 计算 Pauli 分解
 print("-------- 开始计算pauli分解----------")
