@@ -8,6 +8,24 @@ import time
 
 def rvogfwdvol(hv, ext, inc, kz, rngslope=0.0):
 
+    """RVoG 正向模型体积相干性。
+
+    对于给定的一组模型参数，计算 RVoG 模型相干性。
+
+    请注意，所有输入参数都必须是数组（即使它们是一个元素数组），以便可以对它们进行索引以检查 nan 或无限值（由于极端消退或森林高度值）。所有输入参数必须具有相同的形状。
+
+    参数：
+    hv（数组）：森林体积的高度，以米为单位。
+    ext（数组）：森林体积内的波消退，以 Np/m 为单位。
+    inc（数组）：入射角，以弧度为单位。
+    kz（数组）：干涉垂直波数，以弧度/米为单位。
+    rngslope（数组）：面向范围的地形坡度角，以弧度为单位。如果未指定，则假定地形平坦。
+
+    返回：
+    gamma：建模的复杂相干性。
+
+    """
+
     # Calculate the propagation coefficients.
     p1 = 2 * ext * np.cos(rngslope) / np.cos(inc - rngslope)
     p2 = p1 + 1j * kz
@@ -47,7 +65,60 @@ def rvogfwdvol(hv, ext, inc, kz, rngslope=0.0):
 def rvoginv(gamma, phi, inc, kz, ext=None, tdf=None, mu=0.0, rngslope=0.0,
             mask=None, limit2pi=True, hv_min=0.0, hv_max=60.0, hv_step=0.01,
             ext_min=0.0, ext_max=0.115, silent=False):
+    """
+   RVoG模型反演。
 
+计算RVoG模型参数，使其生成的模型相干性与一组观测相干性最接近。该模型采用实值体积时间去相关因子（tdf），其物理参数包括森林高度（hv）、雷达波在森林冠层内的衰减（ext），以及地表相干性（phi），其中arg(phi)等于地形相位。此外，地-体散射幅度比（mu）随极化方式变化。
+
+在单基线情况下，为了减少未知参数的数量并确保模型具有唯一解，我们假设高相干性（通过相干性优化获得的相干性）对应的mu是固定的。默认情况下，mu设为零，即假设高相干性没有地面散射分量。因此，我们必须固定衰减值（ext）或时间去相关因子（tdf）。
+
+因此，该函数需要提供ext或tdf参数之一。函数将优化未提供的这两个参数之一，以及森林高度参数。如果两个参数都未提供，则tdf将固定为1.0（即无时间去相关）。
+
+需要注意的是，ext、tdf和mu参数可以作为固定值提供（例如mu=0），也可以作为与gamma尺寸相同的数组提供，或者作为森林高度参数的查找表（LUT）提供。在LUT情况下，dict['x']包含每个LUT分箱的森林高度值，dict['y']包含参数值。函数将使用numpy.interp对森林高度值进行插值。
+
+此外，该函数不能同时固定ext和tdf，函数总会尝试求解其中之一。
+
+### 参数：
+- **gamma (array)**：二维复值数组，包含相干性优化后得到的“高”相干性。
+- **phi (array)**：二维复值数组，包含地表相干性（例如通过kapok.topo.groundsolver()计算得到）。
+- **inc (array)**：二维数组，包含参考轨道的入射角（单位：弧度）。
+- **kz (array)**：二维数组，包含kz值（单位：弧度/米）。
+- **ext**：衰减参数的固定值（单位：Neper/米）。如果未指定，函数将优化ext和hv（固定tdf）。默认值：None。
+- **tdf**：时间去相关因子的固定值（范围：0到1）。如果未指定，函数将优化tdf和hv。如果ext和tdf都未指定，tdf固定为1。默认值：None。
+- **mu**：gamma输入参数对应的地-体散射比固定值。默认值：0。
+- **rngslope (array)**：地形在距离方向的坡度角（单位：弧度）。默认值：0（即平坦地形）。
+- **mask (array)**：布尔数组。当(mask == True)时，该像素将进行反演；当(mask == False)时，该像素将被忽略，hv设为-1。
+- **limit2pi (bool)**：如果为True，函数将不允许hv超过2π/kz（由kz值确定的高度模糊性）。如果为False，则无此限制。默认值：True。
+- **hv_min (float or array)**：允许的最小森林高度（单位：米）。默认值：0。
+- **hv_max (float or array)**：允许的最大森林高度（单位：米）。默认值：50。
+- **hv_step (float)**：函数将在多轮搜索中逐步缩小搜索步长，直到步长小于hv_step。默认值：0.01米。
+- **ext_min (float)**：最小衰减值（单位：Np/m）。默认值：0.00115 Np/m（约0.01 dB/m）。
+- **ext_max (float)**：最大衰减值（单位：Np/m）。默认值：0.115 Np/m（约1 dB/m）。
+- **silent (bool)**：如果设为True，则不显示状态更新。默认值：False。
+
+### 返回值：
+- **hvmap (array)**：反演得到的森林高度数组（单位：米）。
+- **extmap/tdfmap (array)**：如果指定了ext，则返回tdf的反演值数组；如果指定了tdf，则返回ext的反演值数组。
+- **converged (array)**：二维布尔数组。如果|观测gamma - 模型gamma| ≤ 0.01，则该像素被标记为收敛（True）；否则为False。如果某像素converged == False，则表明RVoG模型未能找到该像素的良好拟合解，参数估计可能无效。
+
+    :param gamma:
+    :param phi:
+    :param inc:
+    :param kz:
+    :param ext:
+    :param tdf:
+    :param mu:
+    :param rngslope:
+    :param mask:
+    :param limit2pi:
+    :param hv_min:
+    :param hv_max:
+    :param hv_step:
+    :param ext_min:
+    :param ext_max:
+    :param silent:
+    :return:
+    """
     if not silent:
         print('kapok.rvog.rvoginv | Beginning RVoG model inversion. (' + time.ctime() + ')')
     dim = np.shape(gamma)

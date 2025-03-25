@@ -12,6 +12,7 @@ def make_pauli(array_HH, array_VV, array_HV,row,col):
             k22 = (array_HH[i,j] - array_VV[i,j]) / math.sqrt(2)
             k33 = (array_HV[i,j] * 2) / math.sqrt(2)
             k1[i,j] = np.array([[k11],[k22],[k33]])
+    print("-------pauli 分解结束----------")
     return k1
 
 # 计算 Pauli 分解
