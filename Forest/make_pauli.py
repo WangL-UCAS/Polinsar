@@ -2,31 +2,22 @@
 import numpy as np
 import math
 
+def make_pauli(array_HH, array_VV, array_HV, row, col):
+    # 计算k11, k22, k33的矩阵运算
+    sqrt2 = math.sqrt(2)
+    k11 = (array_HH + array_VV) / sqrt2
+    k22 = (array_HH - array_VV) / sqrt2
+    k33 = (array_HV * 2) / sqrt2
 
-def make_pauli(array_HH, array_VV, array_HV,row,col):
-    ## 获取卫星影像的像元数量
-    k1 = np.zeros((row,col,3,1),dtype=complex)
-    for i in range(row):
-        for j in range(col):
-            k11 = (array_HH[i,j] + array_VV[i,j]) / math.sqrt(2)
-            k22 = (array_HH[i,j] - array_VV[i,j]) / math.sqrt(2)
-            k33 = (array_HV[i,j] * 2) / math.sqrt(2)
-            k1[i,j] = np.array([[k11],[k22],[k33]])
+    # 构建k1和k1_T矩阵
+    k1 = np.stack((k11, k22, k33), axis=-1)  # shape: (row, col, 3)
+    k1 = k1[..., np.newaxis]  # 添加最后一个维度，变为 (row, col, 3, 1)
+
+    k1_T = np.conj(k1)  # 共轭复数
+    k1_T = np.swapaxes(k1_T, -1, -2)  # 转置最后两个维度，变为 (row, col, 1, 3)
+
     print("-------pauli 分解结束----------")
-    return k1
-
+    return k1, k1_T
 # 计算 Pauli 分解
 
-## 计算共轭转置，也就是k1_T  k2_T
-def make_pauli_T(array_HH, array_VV, array_HV,row,col):
-    k1 = np.zeros((row,col,1,3),dtype=complex)
-    for i in range(row):
-        for j in range(col):
-            k11 = (array_HH[i,j] + array_VV[i,j]) / math.sqrt(2)
-            k22 = (array_HH[i,j] - array_VV[i,j]) / math.sqrt(2)
-            k33 = (array_HV[i,j] * 2) / math.sqrt(2)
-            k = np.array([k11,k22,k33])
-            k_conj = np.conj(k)
-            k1[i,j] = np.array(k_conj)
-    print("-------pauli 分解结束----------")
-    return k1
+##

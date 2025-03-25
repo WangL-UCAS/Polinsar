@@ -39,17 +39,11 @@ row,col = array_HH_830.shape
     md这里的所有计算都是像素为单位的，避免出错
 """
 # 计算 Pauli 分解
-print("-------- 开始计算pauli分解----------")
-array_830_k1 = make_pauli.make_pauli(array_HH_830,array_VV_830,array_HV_830,row,col)
+print("-------- 开始计算k1与k1_T(k1的共轭转置)----------")
+array_830_k1, array_830_k1_T = make_pauli.make_pauli(array_HH_830,array_VV_830,array_HV_830,row,col)
 print("--------主图像k1计算结束，开始计算辅图像k2----------")
-array_909_k2 = make_pauli.make_pauli(array_HH_909, array_VV_909, array_HV_909,row,col)
-
-#计算共轭转置
-print("---------开始计算k1、k2转置共轭----------")
-array_830_k1_T = make_pauli.make_pauli(array_HH_830, array_VV_830, array_HV_830,row,col)
-print("---------k1转置共轭结束----------")
-array_909_k2_T = make_pauli.make_pauli(array_HH_909, array_VV_909, array_HV_909,row,col)
-
+array_909_k2,array_909_k2_T = make_pauli.make_pauli(array_HH_909, array_VV_909, array_HV_909,row,col)
+print("-------- 辅图像k2计算结束 ----------")
 """
     创建新矩阵,计算T6、以及复相干优化
 """
@@ -73,6 +67,7 @@ data_angle = gdal.Open(angle_file,gdal.GA_ReadOnly).GetRasterBand(1).ReadAsArray
 data_angle = math.radians(data_angle)
 
 kz = make_Kz.make_kz(baseline,lambda_radar,range,data_angle,row,col)
+
 
 end_time = datetime.now()
 print("程序启动结束为：",end_time)

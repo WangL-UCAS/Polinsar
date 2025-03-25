@@ -7,6 +7,7 @@ def make_T6_and_MAX(array_pauli_mask, array_pauli_T_mask, array_pauli_slave, arr
     """
 
     # 初始化 T6 矩阵
+    #TODO 这里的for循环是不是也能换成矩阵运算 md内存又爆炸了
     T11 = np.zeros((row, col, 3, 3), dtype=complex)
     T22 = np.zeros((row, col, 3, 3), dtype=complex)
     Omaga12 = np.zeros((row, col, 3, 3), dtype=complex)
