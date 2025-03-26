@@ -7,6 +7,9 @@ import numpy as np
 import input_data
 import make_Kz
 import math
+import make_ground
+import Rvog
+import Save_Height_envi
 """
     data_ : 是指的卫星数据的日期，例如20240829；
     number_id 指的是卫星标号：例如105058528
@@ -44,10 +47,10 @@ array_830_k1, array_830_k1_T = make_pauli.make_pauli(array_HH_830,array_VV_830,a
 print("--------主图像k1计算结束，开始计算辅图像k2----------")
 array_909_k2,array_909_k2_T = make_pauli.make_pauli(array_HH_909, array_VV_909, array_HV_909,row,col)
 print("-------- 辅图像k2计算结束 ----------")
+
 """
     创建新矩阵,计算T6、以及复相干优化
 """
-
 print("-------- T6、复相干优化----------")
 T11, T22, Omaga12, Y_MAX, Y_MID, Y_END = make_best.make_T6_and_MAX(array_830_k1,array_830_k1_T,array_909_k2,array_909_k2_T,row,col)
 print("---------T6、复相干优化计算结束----------")
@@ -68,7 +71,22 @@ data_angle = math.radians(data_angle)
 
 kz = make_Kz.make_kz(baseline,lambda_radar,range,data_angle,row,col)
 
+print("-----------开始计算地表相位-----------")
+gama_ground = np.zeros((2,row,col),type = complex)
+gama_ground[0,:,:] = Y_MAX
+gama_ground[1,:,:] = Y_END
+ground = make_ground.make_ground(gama_ground,kz)
+print("-------- ground计算结束 --------")
 
+print("-----------开始计算高度结果-------")
+
+height, converged = Rvog.Rvog(Y_MAX, ground, data_angle, kz)
+
+print("---------高度结果计算结束，开始保存结果--------")
+
+Out_file = "Forest//height.dat"
+Save_Height_envi.save_float_as_envi(Out_file,height,angle_file)
+print("--------结束所有程序，完成高度计算---------")
 end_time = datetime.now()
 print("程序启动结束为：",end_time)
 print("程序总计用时为：",end_time - start_time)

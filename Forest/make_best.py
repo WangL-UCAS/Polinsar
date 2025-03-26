@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import cmath
 
@@ -44,19 +46,28 @@ def make_T6_and_MAX(array_pauli_mask, array_pauli_T_mask, array_pauli_slave, arr
     vec1_max = eig_vectors1[batch_indices[0], batch_indices[1], :, idx_max]  # (row, col, 3)
     vec1_mid = eig_vectors1[batch_indices[0], batch_indices[1], :, idx_mid]  # (row, col, 3)
     vec1_end = eig_vectors1[batch_indices[0], batch_indices[1], :, idx_end]  # (row, col, 3)
+
     vec2_max = eig_vectors2[batch_indices[0], batch_indices[1], :, idx_max]  # (row, col, 3)
     vec2_mid = eig_vectors2[batch_indices[0], batch_indices[1], :, idx_mid]  # (row, col, 3)
     vec2_end = eig_vectors2[batch_indices[0], batch_indices[1], :, idx_end]  # (row, col, 3)
 
-    # 计算相位角 (向量化)
+    # 计算相位角 (向量化) 为后续的 w2 进行改正
     Angle_max = np.angle((vec1_max.conj() * vec2_max).sum(axis=-1))  # (row, col)
     Angle_mid = np.angle((vec1_mid.conj() * vec2_mid).sum(axis=-1))  # (row, col)
     Angle_end = np.angle((vec1_end.conj() * vec2_end).sum(axis=-1))  # (row, col)
+
+    vec2_max_ = np.exp(-1j * Angle_max) * vec2_max
+    vec2_mid_ = np.exp(-1j * Angle_mid) * vec2_mid
+    vec2_end_ = np.exp(-1j * Angle_end) * vec2_end
 
     # 计算最优复相干系数 (向量化)
     eig_max = np.take_along_axis(eig_values1, sorted_indices[..., 0:1], axis=-1).squeeze()  # (row, col)
     eig_mid = np.take_along_axis(eig_values1, sorted_indices[..., 1:2], axis=-1).squeeze()  # (row, col)
     eig_end = np.take_along_axis(eig_values1, sorted_indices[..., 2:3], axis=-1).squeeze()  # (row, col)
+
+    Angle_max = np.angle((vec1_max.conj() * vec2_max).sum(axis=-1))
+    Angle_mid = np.angle((vec1_mid.conj() * vec2_mid).sum(axis=-1))
+    Angle_end = np.angle((vec1_end.conj() * vec2_end).sum(axis=-1))
 
     Y_MAX = np.sqrt(eig_max) * np.exp(-1j * Angle_max)  # (row, col)
     Y_MID = np.sqrt(eig_mid) * np.exp(-1j * Angle_mid)  # (row, col)
