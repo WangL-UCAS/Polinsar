@@ -3,7 +3,7 @@ import math
 import numpy as np
 import cmath
 
-def make_T6_and_MAX(array_pauli_mask, array_pauli_T_mask, array_pauli_slave, array_pauli_T_slave, row, col):
+def make_T6_and_MAX(T11,T22,Omaga12, row, col):
     """
     计算 T11, T22, Ω12，并计算最优复相干系数（支持四维输入）
     输入:
@@ -15,14 +15,9 @@ def make_T6_and_MAX(array_pauli_mask, array_pauli_T_mask, array_pauli_slave, arr
         T11, T22, Omaga12:   (row, col, 3, 3)
         Y_MAX, Y_MID, Y_END:  (row, col) 复相干系数
     """
-    # 计算 T11, T22, Ω12 (直接四维矩阵乘法)
-    T11 = array_pauli_mask @ array_pauli_T_mask  # (row, col, 3, 3)
-    T22 = array_pauli_slave @ array_pauli_T_slave  # (row, col, 3, 3)
-    Omaga12 = array_pauli_mask @ array_pauli_T_slave  # (row, col, 3, 3)
-
     # 计算 T11 和 T22 的逆矩阵 (逐像素求逆)
-    T11_inv = np.linalg.inv(T11)  # (row, col, 3, 3)
-    T22_inv = np.linalg.inv(T22)  # (row, col, 3, 3)
+    T11_inv = np.linalg.pinv(T11)  # (row, col, 3, 3)
+    T22_inv = np.linalg.pinv(T22)  # (row, col, 3, 3)
 
     # 构造特征矩阵 (向量化操作)
     Omaga12_conj_T = Omaga12.conj().swapaxes(-1, -2)  # 共轭转置: (row, col, 3, 3)
@@ -74,4 +69,4 @@ def make_T6_and_MAX(array_pauli_mask, array_pauli_T_mask, array_pauli_slave, arr
     Y_END = np.sqrt(eig_end) * np.exp(-1j * Angle_end)  # (row, col)
 
     print("--------- T11, T22, Ω12 计算完成，并已计算最优复相干系数 -----------")
-    return T11, T22, Omaga12, Y_MAX, Y_MID, Y_END
+    return Y_MAX, Y_MID, Y_END

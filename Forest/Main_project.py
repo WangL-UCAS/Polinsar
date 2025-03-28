@@ -10,6 +10,7 @@ import math
 import make_ground
 import Rvog
 import Save_Height_envi
+import h5py
 """
     data_ : 是指的卫星数据的日期，例如20240829；
     number_id 指的是卫星标号：例如105058528
@@ -48,11 +49,14 @@ print("--------主图像k1计算结束，开始计算辅图像k2----------")
 array_909_k2,array_909_k2_T = make_pauli.make_pauli(array_HH_909, array_VV_909, array_HV_909,row,col)
 print("-------- 辅图像k2计算结束 ----------")
 
+T11 = array_830_k1 @ array_830_k1_T
+T22 = array_909_k2 @ array_909_k2_T
+Omage12 = array_830_k1 @ array_909_k2_T
 """
     创建新矩阵,计算T6、以及复相干优化
 """
 print("-------- T6、复相干优化----------")
-T11, T22, Omaga12, Y_MAX, Y_MID, Y_END = make_best.make_T6_and_MAX(array_830_k1,array_830_k1_T,array_909_k2,array_909_k2_T,row,col)
+Y_MAX, Y_MID, Y_END = make_best.make_T6_and_MAX(T11, T22, Omage12, row,col)
 print("---------T6、复相干优化计算结束----------")
 
 """
