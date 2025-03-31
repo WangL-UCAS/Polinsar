@@ -6,7 +6,7 @@ from osgeo import gdal
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-def make_kz(baseline,lambda_radar,range,angle_data,row,col):
+def make_kz(baseline,lambda_radar,range_line,angle_data,row,col):
     """
     这几个参数在envi
     例子：配准的结果 saocom_20240829_105058528_QS6_D_VV_slc_rsp_orb.sml 中有
@@ -28,13 +28,13 @@ def make_kz(baseline,lambda_radar,range,angle_data,row,col):
     """
     print("-------开始计算KZ------")
     # 这里是计算斜距每移动一个距离向像元，变换多少，range是一个数组，数据可以在这几个参数在envi 配准的结果 saocom_20240829_105058528_QS6_D_VV_slc_rsp_orb.sml 中有
-    range1 = (range[1] - range[0]) / (col / 2)
-    range2 = (range[2] - range[1]) / (col / 2)
+    range1 = (range_line[1] - range_line[0]) / (col / 2)
+    range2 = (range_line[2] - range_line[1]) / (col / 2)
     range_ave = (range1 + range2) / 2
     Kz = np.zeros((row, col), dtype=np.float64)
     for i in range(row):
         for j in range(col):
-            r = range[0] + j * range_ave
+            r = range_line[0] + j * range_ave
             Kz[i, j] = (4 * math.pi * baseline) / (lambda_radar * r * math.sin(angle_data[i,j]))
     print("-------kz计算结束------")
     return Kz
