@@ -66,4 +66,4 @@ def save_slope_envi(output_path, slope_data, reference_file):
 
 #dem_file z.rdr文件位置, output_path 输出位置, pixel_size_x 空间分辨率, pixel_size_y空间分辨率 （这里不确定）
 compute_and_save_slope("830/z.rdr.full", "830/slope_angle.dat", 7.742726833957243, 3.99279930026319)
-compute_and_save_slope("909/z.rdr.full","909/slope_angle.dat",7.742726833957243, 3.99279930026319)
+#compute_and_save_slope("909/z.rdr.full","909/slope_angle.dat",7.742726833957243, 3.99279930026319)
