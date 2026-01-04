@@ -1,6 +1,9 @@
-import numpy as np
-from osgeo import gdal
+import os
 
+import h5py
+import numba
+import numpy as np
+from osgeo import gdal, gdal_array
 
 def compute_and_save_slope(dem_file, output_path, pixel_size_x, pixel_size_y):
     """
@@ -65,5 +68,9 @@ def save_slope_envi(output_path, slope_data, reference_file):
 # 示例使用
 
 #dem_file z.rdr文件位置, output_path 输出位置, pixel_size_x 空间分辨率, pixel_size_y空间分辨率 （这里不确定）
-compute_and_save_slope(r"E:\forest\Project\Forest\z.dat", r"E:\forest\Project\Forest\slope.dat",  7.74272683395724303778706598678, 3.99279930026319007652091386262)
+compute_and_save_slope(r"E:\forest\Project\Forest\HZZ-2\HZZ-2-830-909\data\z.dat", r"E:\forest\Project\Forest\HZZ-2\HZZ-2-830-909\data\slope.dat",  7.8182794096764327562709695485, 3.99259963345670998435821275052)
 #compute_and_save_slope("909/z.rdr.full","909/slope_angle.dat",7.742726833957243, 3.99279930026319)
+
+
+
+

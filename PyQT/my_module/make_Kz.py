@@ -39,3 +39,5 @@ def make_kz(baseline,lambda_radar,rangeq,angle_data,row,col):
             Kz[i, j] = (4 * math.pi * baseline) / (lambda_radar * r * math.sin(angle_data[i,j]))
     print("-------kz计算结束------")
     return Kz
+
+
